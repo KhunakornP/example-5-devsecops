@@ -69,7 +69,23 @@ async function main() {
         console.log("Received a 'viewed' message:");
         console.log(JSON.stringify(parsedMsg, null, 4)); // JUST PRINTING THE RECEIVED MESSAGE.
 
-        // ... ADD YOUR CODE HERE TO PROCESS THE MESSAGE ...
+        // increment the viewed counter for the recieved video
+        const videoId = parsedMsg.videoId
+        const viewedVideo = await videosCollection.findOne({"videoId":videoId})
+        // if the video exists in the recommendation db update it, else create a new record
+        if (viewedVideo) {
+            await videosCollection.updateOne({ "videoId": videoId}, { $inc : {views : 1}})
+        } else {
+            await videosCollection.insertOne({ "videoId": videoId, "views": 1 });
+        }
+
+        // query the videos and recommend the most watched video
+        let mostViewedVideo = await videosCollection.find().sort({ "views": -1 }).limit(1).toArray();
+        if (mostViewedVideo.length == 0) {
+            console.log("No videos to recommend") 
+        } else {
+            console.log("Recommendation video " + mostViewedVideo[0].videoId)
+        }
 
         console.log("Acknowledging message was handled.");
                 
