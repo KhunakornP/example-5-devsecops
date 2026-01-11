@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const amqp = require('amqplib');
+const mongodb = require("mongodb");
 
 if (!process.env.PORT) {
     throw new Error("Please specify the port number for the HTTP server with the environment variable PORT.");
@@ -50,15 +51,16 @@ async function main() {
 
     app.get("/video", async (req, res) => { // Route for streaming video.
 
-        const videoId = new mongodb.ObjectId(req.query.id);
-        const videoRecord = await videosCollection.findOne({ id: videoId });
+        console.log(req.query.id)
+        const videoId = req.query.id;
+        const videoRecord = await videosCollection.findOne({ _id: videoId });
         if (!videoRecord) {
             // The video was not found.
             res.sendStatus(404);
             return;
         }
 
-        const videoPath = videoRecord.videoPath;
+        const videoPath = "./videos/" + videoRecord.videoPath;
         const stats = await fs.promises.stat(videoPath);
 
         res.writeHead(200, {
