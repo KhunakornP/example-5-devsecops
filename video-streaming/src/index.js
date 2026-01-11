@@ -22,7 +22,8 @@ const DBNAME = process.env.DBNAME;
 //
 async function main() {
 
-    const client = await mongodb.MongoClient.connect(DBHOST); // Connects to the mongodb database.
+    // Create a client and connect to the mongodb database.
+    const client = await mongodb.MongoClient.connect(DBHOST);
     const db = client.db(DBNAME);
     const videosCollection = db.collection("videos");
 
@@ -39,10 +40,10 @@ async function main() {
     //
     // Broadcasts the "viewed" message to other microservices.
     //
-	function broadcastViewedMessage(messageChannel, videoPath) {
+	function broadcastViewedMessage(messageChannel, videoPath, videoId) {
 	    console.log(`Publishing message on "viewed" exchange.`);
 	        
-	    const msg = { videoPath: videoPath };
+	    const msg = { videoPath: videoPath, videoId: videoId};
 	    const jsonMsg = JSON.stringify(msg);
 	    messageChannel.publish("viewed", "", Buffer.from(jsonMsg)); // Publishes message to the "viewed" exchange.
 	}
@@ -51,7 +52,7 @@ async function main() {
 
     app.get("/video", async (req, res) => { // Route for streaming video.
 
-        console.log(req.query.id)
+        // get the video id from the 'id' parameter and query the database
         const videoId = req.query.id;
         const videoRecord = await videosCollection.findOne({ _id: videoId });
         if (!videoRecord) {
@@ -60,6 +61,7 @@ async function main() {
             return;
         }
 
+        // get the video path and serve the video
         const videoPath = "./videos/" + videoRecord.videoPath;
         const stats = await fs.promises.stat(videoPath);
 
@@ -70,7 +72,7 @@ async function main() {
     
         fs.createReadStream(videoPath).pipe(res);
 
-        broadcastViewedMessage(messageChannel, videoPath); // Sends the "viewed" message to indicate this video has been watched.
+        broadcastViewedMessage(messageChannel, videoPath, videoId); // Sends the "viewed" message to indicate this video has been watched.
     });
 
     app.listen(PORT, () => {
