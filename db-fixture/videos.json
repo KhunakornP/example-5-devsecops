@@ -1,0 +1,10 @@
+[
+    {
+        "_id" : "1",
+        "videoPath" : "SampleVideo_1280x720_1mb.mp4"
+    },
+    {
+        "_id" : "2",
+        "videoPath" : "DAQ-project Extroplanner.mp4"
+    }
+]
