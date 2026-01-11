@@ -71,8 +71,11 @@ async function main() {
         });
     
         fs.createReadStream(videoPath).pipe(res);
-
-        broadcastViewedMessage(messageChannel, videoPath, videoId); // Sends the "viewed" message to indicate this video has been watched.
+        
+        // send the broadcast once after metadata request
+        if (req.headers.range != null) {
+            broadcastViewedMessage(messageChannel, videoPath, videoId); // Sends the "viewed" message to indicate this video has been watched.
+        }
     });
 
     app.listen(PORT, () => {
